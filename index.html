@@ -1,0 +1,78 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to Visual Text</title>
+    <style>
+        .main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-fetch {
+            width: 200px;
+            height: 30px;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        function fetch() {
+            const textarea = document.getElementById('html-source');
+            const newhtml = `<div id="htmlToProcess">${textarea.value}</div>`;
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(newhtml, "text/html");
+            const element = doc.getElementById('htmlToProcess');
+            console.log(element);
+            if (element) {
+                const text = element.innerText;
+                // Extract visible text
+                const visibleText = [];
+
+                // Get all text nodes that are not inside script, style, or hidden elements
+                const walker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+                    acceptNode: (node) => {
+                        if (!node.parentElement || ['SCRIPT', 'STYLE'].includes(node.parentElement.tagName)) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                });
+
+                while (walker.nextNode()) {
+                    const text = walker.currentNode.textContent.trim();
+                    if (text) visibleText.push(text);
+                }
+
+                // return visibleText.join('\n');
+                document.getElementById('output').value = visibleText.join('\n');
+            } else {
+                alert('text not found');
+            }
+
+        }
+        function copy() {
+            const textarea = document.getElementById("output");
+            textarea.select();
+            document.execCommand("copy");
+        }
+    </script>
+</head>
+
+<body>
+    <div class="main">
+        <h3>HTML:</h3>
+        <textarea id="html-source" rows="20" cols="50"></textarea>
+        <br />
+        <button type="button" class="btn-fetch" onclick="fetch()">Fetch Text</button>
+        <br />
+        <!-- <div id="output"></div> -->
+        <h3>OUTPUT:</h3>
+        <textarea id="output" rows="6" cols="30" readonly>…</textarea>
+        <br />
+        <button type="button" class="btn-fetch" onclick="copy()">Copy</button>
+    </div>
+
+</body>
+
+</html>
